@@ -2742,7 +2742,7 @@ int MQTTAsync_connect(MQTTAsync handle, const MQTTAsync_connectOptions* options)
 		goto exit;
 	}
 
-	if (strncmp(options->struct_id, "MQTC", 4) != 0 || options->struct_version < 0 || options->struct_version > 6)
+	if (strncmp(options->struct_id, "MQTC", 4) != 0 || options->struct_version < 0 || options->struct_version > 7)
 	{
 		rc = MQTTASYNC_BAD_STRUCTURE;
 		goto exit;
@@ -2885,6 +2885,17 @@ int MQTTAsync_connect(MQTTAsync handle, const MQTTAsync_connectOptions* options)
 		m->c->will->qos = options->will->qos;
 		m->c->will->retained = options->will->retained;
 		m->c->will->topic = MQTTStrdup(options->will->topicName);
+	}
+
+	if (options->struct_version >= 7)
+	{
+		m->c->websocket_headers_len = options->websocket_headers_len;
+		m->c->websocket_headers = malloc(sizeof(MQTTClient_webSocketHeader) * options->websocket_headers_len);
+		for (int i = 0; i < options->websocket_headers_len; i++)
+		{
+			m->c->websocket_headers[i].name = MQTTStrdup(options->websocket_headers[i].name);
+			m->c->websocket_headers[i].value = MQTTStrdup(options->websocket_headers[i].value);
+		}
 	}
 
 #if defined(OPENSSL)
@@ -3560,7 +3571,7 @@ static int MQTTAsync_connecting(MQTTAsyncs* m)
 					if ( m->websocket )
 					{
 						m->c->connect_state = WEBSOCKET_IN_PROGRESS;
-						if ((rc = WebSocket_connect(&m->c->net, m->serverURI)) == SOCKET_ERROR )
+						if ((rc = WebSocket_connect(&m->c->net, m->serverURI, m->c->websocket_headers, m->c->websocket_headers_len)) == SOCKET_ERROR )
 							goto exit;
 					}
 					else
@@ -3590,7 +3601,7 @@ static int MQTTAsync_connecting(MQTTAsyncs* m)
 			if ( m->websocket )
 			{
 				m->c->connect_state = WEBSOCKET_IN_PROGRESS;
-				if ((rc = WebSocket_connect(&m->c->net, m->serverURI)) == SOCKET_ERROR )
+				if ((rc = WebSocket_connect(&m->c->net, m->serverURI, m->c->websocket_headers, m->c->websocket_headers_len)) == SOCKET_ERROR )
 					goto exit;
 			}
 			else
@@ -3621,7 +3632,7 @@ static int MQTTAsync_connecting(MQTTAsyncs* m)
 		if ( m->websocket )
 		{
 			m->c->connect_state = WEBSOCKET_IN_PROGRESS;
-			if ((rc = WebSocket_connect(&m->c->net, m->serverURI)) == SOCKET_ERROR )
+			if ((rc = WebSocket_connect(&m->c->net, m->serverURI, m->c->websocket_headers, m->c->websocket_headers_len)) == SOCKET_ERROR )
 				goto exit;
 		}
 		else

@@ -139,7 +139,7 @@ int MQTTProtocol_connect(const char* ip_address, Clients* aClient, int websocket
 #endif
 		if ( websocket )
 		{
-			rc = WebSocket_connect( &aClient->net, ip_address );
+			rc = WebSocket_connect( &aClient->net, ip_address, aClient->websocket_headers, aClient->websocket_headers_len );
 			if ( rc == TCPSOCKET_INTERRUPTED )
 				aClient->connect_state = WEBSOCKET_IN_PROGRESS; /* Websocket connect called - wait for completion */
 		}

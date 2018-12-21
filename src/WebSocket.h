@@ -54,7 +54,7 @@
 void WebSocket_close(networkHandles *net, int status_code, const char *reason);
 
 /* sends upgrade request */
-int WebSocket_connect(networkHandles *net, const char *uri);
+int WebSocket_connect(networkHandles *net, const char *uri, const MQTTClient_webSocketHeader *headers, const int header_len);
 
 /* calculates the extra data required in a packet to hold a WebSocket frame header */
 size_t WebSocket_calculateFrameHeaderSize(networkHandles *net, int mask_data,

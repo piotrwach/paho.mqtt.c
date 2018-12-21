@@ -136,6 +136,8 @@ typedef struct
 	MQTTClient_SSLOptions *sslopts;
 	SSL_SESSION* session;    /***< SSL session pointer for fast handhake */
 #endif
+	MQTTClient_webSocketHeader* websocket_headers;
+  	int websocket_headers_len;
 } Clients;
 
 int clientIDCompare(void* a, void* b);

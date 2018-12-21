@@ -306,11 +306,12 @@ size_t WebSocket_calculateFrameHeaderSize(networkHandles *net, int mask_data,
  *
  * @see WebSocket_upgrade
  */
-int WebSocket_connect( networkHandles *net, const char *uri )
+int WebSocket_connect( networkHandles *net, const char *uri, const MQTTClient_webSocketHeader *headers, const int header_len)
 {
 	int rc;
 	char *buf = NULL;
-	int i, buf_len = 0;
+	char *headers_buf = NULL;
+	int i, buf_len = 0, headers_buf_len = 0;
 	size_t hostname_len;
 	int port = 80;
 	const char *topic = NULL;
@@ -338,6 +339,28 @@ int WebSocket_connect( networkHandles *net, const char *uri )
 	if ( !topic )
 		topic = "/mqtt";
 
+	if (headers)
+	{
+		for ( i = 0; i < header_len; ++i)
+		{
+			headers_buf_len = headers_buf_len + 
+				strlen( headers[i].name ) + 2 /* ': ' */ + strlen( headers[i].value ) + 2 /* '\r\n' */;
+		}
+
+		headers_buf_len += 1; /* '\0' */
+
+		headers_buf = (char *)malloc( headers_buf_len );
+		headers_buf[0] = '\0';
+
+		for ( i = 0; i < header_len; ++i)
+		{
+			strcat( headers_buf, headers[i].name );
+			strcat( headers_buf, ": " );
+			strcat( headers_buf, headers[i].value );
+			strcat( headers_buf, "\r\n" );
+		}
+	}
+
 	for ( i = 0; i < 2; ++i )
 	{
 		buf_len = snprintf( buf, (size_t)buf_len,
@@ -349,16 +372,23 @@ int WebSocket_connect( networkHandles *net, const char *uri )
 			"Sec-WebSocket-Key: %s\r\n"
 			"Sec-WebSocket-Version: 13\r\n"
 			"Sec-WebSocket-Protocol: mqtt\r\n"
+			"%s"
 			"\r\n", topic,
 			(int)hostname_len, uri, port,
 			(int)hostname_len, uri, port,
-			net->websocket_key );
+			net->websocket_key,
+			headers_buf ? headers_buf : "" );
 
 		if ( i == 0 && buf_len > 0 )
 		{
 			++buf_len; /* need 1 extra byte for ending '\0' */
 			buf = malloc( buf_len );
 		}
+	}
+
+	if ( headers_buf ) 
+	{
+		free( headers_buf );
 	}
 
 	if ( buf )

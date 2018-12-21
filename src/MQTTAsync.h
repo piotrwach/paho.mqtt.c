@@ -972,6 +972,11 @@ typedef struct
 
 #define MQTTAsync_SSLOptions_initializer { {'M', 'Q', 'T', 'S'}, 3, NULL, NULL, NULL, NULL, NULL, 1, MQTT_SSL_VERSION_DEFAULT, 0, NULL, NULL, NULL }
 
+typedef struct {
+  const char* name;
+  const char* value;
+} MQTTAsync_webSocketHeader;
+
 /**
  * MQTTAsync_connectOptions defines several settings that control the way the
  * client connects to an MQTT server.  Default values are set in
@@ -988,6 +993,7 @@ typedef struct
     * 3 signifies no automatic reconnect options
     * 4 signifies no binary password option (just string)
     * 5 signifies no MQTTV5 properties
+    * 6 signifies no HTTP headers option
 	  */
 	int struct_version;
 	/** The "keep alive" interval, measured in seconds, defines the maximum time
@@ -1143,14 +1149,18 @@ typedef struct
       * completion will be received.
       */
 	MQTTAsync_onFailure5* onFailure5;
+  /** Additional websocket connection headers. */
+  MQTTAsync_webSocketHeader* websocket_headers;
+  /** Number of additional websocket headers. */
+  int websocket_headers_len;
 } MQTTAsync_connectOptions;
 
 
-#define MQTTAsync_connectOptions_initializer { {'M', 'Q', 'T', 'C'}, 6, 60, 1, 65535, NULL, NULL, NULL, 30, 0,\
-NULL, NULL, NULL, NULL, 0, NULL, MQTTVERSION_DEFAULT, 0, 1, 60, {0, NULL}, 0, NULL, NULL, NULL, NULL}
+#define MQTTAsync_connectOptions_initializer { {'M', 'Q', 'T', 'C'}, 7, 60, 1, 65535, NULL, NULL, NULL, 30, 0,\
+NULL, NULL, NULL, NULL, 0, NULL, MQTTVERSION_DEFAULT, 0, 1, 60, {0, NULL}, 0, NULL, NULL, NULL, NULL, NULL, 0}
 
-#define MQTTAsync_connectOptions_initializer5 { {'M', 'Q', 'T', 'C'}, 6, 60, 0, 65535, NULL, NULL, NULL, 30, 0,\
-NULL, NULL, NULL, NULL, 0, NULL, MQTTVERSION_5, 0, 1, 60, {0, NULL}, 1, NULL, NULL, NULL, NULL}
+#define MQTTAsync_connectOptions_initializer5 { {'M', 'Q', 'T', 'C'}, 7, 60, 0, 65535, NULL, NULL, NULL, 30, 0,\
+NULL, NULL, NULL, NULL, 0, NULL, MQTTVERSION_5, 0, 1, 60, {0, NULL}, 1, NULL, NULL, NULL, NULL, NULL, 0}
 
 
 /**

@@ -1158,7 +1158,7 @@ static MQTTResponse MQTTClient_connectURIVersion(MQTTClient handle, MQTTClient_c
 					if (m->websocket)
 					{
 						m->c->connect_state = WEBSOCKET_IN_PROGRESS;
-						rc = WebSocket_connect(&m->c->net,m->serverURI);
+						rc = WebSocket_connect(&m->c->net,m->serverURI, m->c->websocket_headers, m->c->websocket_headers_len);
 						if ( rc == SOCKET_ERROR )
 							goto exit;
 					}
@@ -1186,7 +1186,7 @@ static MQTTResponse MQTTClient_connectURIVersion(MQTTClient handle, MQTTClient_c
 		else if (m->websocket)
 		{
 			m->c->connect_state = WEBSOCKET_IN_PROGRESS;
-			if ( WebSocket_connect(&m->c->net, m->serverURI) == SOCKET_ERROR )
+			if ( WebSocket_connect(&m->c->net, m->serverURI, m->c->websocket_headers, m->c->websocket_headers_len) == SOCKET_ERROR )
 			{
 				rc = SOCKET_ERROR;
 				goto exit;
@@ -1221,7 +1221,7 @@ static MQTTResponse MQTTClient_connectURIVersion(MQTTClient handle, MQTTClient_c
 		{
 			/* wait for websocket connect */
 			m->c->connect_state = WEBSOCKET_IN_PROGRESS;
-			rc = WebSocket_connect( &m->c->net, m->serverURI );
+			rc = WebSocket_connect( &m->c->net, m->serverURI, m->c->websocket_headers, m->c->websocket_headers_len );
 			if ( rc != 1 )
 			{
 				rc = SOCKET_ERROR;
@@ -1470,6 +1470,17 @@ static MQTTResponse MQTTClient_connectURI(MQTTClient handle, MQTTClient_connectO
 		memcpy((void*)m->c->password, options->binarypwd.data, m->c->passwordlen);
 	}
 
+	if (options->struct_version >= 7)
+	{
+		m->c->websocket_headers_len = options->websocket_headers_len;
+		m->c->websocket_headers = malloc(sizeof(MQTTClient_webSocketHeader) * options->websocket_headers_len);
+		for (int i = 0; i < options->websocket_headers_len; i++)
+		{
+			m->c->websocket_headers[i].name = MQTTStrdup(options->websocket_headers[i].name);
+			m->c->websocket_headers[i].value = MQTTStrdup(options->websocket_headers[i].value);
+		}
+	}
+
 	if (options->struct_version >= 3)
 		MQTTVersion = options->MQTTVersion;
 	else
@@ -1542,7 +1553,7 @@ MQTTResponse MQTTClient_connectAll(MQTTClient handle, MQTTClient_connectOptions*
 		goto exit;
 	}
 
-	if (strncmp(options->struct_id, "MQTC", 4) != 0 || options->struct_version < 0 || options->struct_version > 6)
+	if (strncmp(options->struct_id, "MQTC", 4) != 0 || options->struct_version < 0 || options->struct_version > 7)
 	{
 		rc.reasonCode = MQTTCLIENT_BAD_STRUCTURE;
 		goto exit;

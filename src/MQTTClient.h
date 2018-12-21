@@ -732,6 +732,12 @@ typedef struct
  * correct operation of the client and so you <b>must</b> at least set a value
  * for #keepAliveInterval.
  */
+
+typedef struct {
+  const char* name;
+  const char* value;
+} MQTTClient_webSocketHeader;
+
 typedef struct
 {
 	/** The eyecatcher for this structure.  must be MQTC. */
@@ -743,6 +749,7 @@ typedef struct
 	 * 3 signifies no returned values
 	 * 4 signifies no binary password option
 	 * 5 signifies no maxInflightMessages and cleanstart
+	 * 6 signifies no HTTP headers option
 	 */
 	int struct_version;
 	/** The "keep alive" interval, measured in seconds, defines the maximum time
@@ -870,11 +877,15 @@ typedef struct
 	 * MQTT V5 clean start flag.  Only clears state at the beginning of the session.
 	 */
 	int cleanstart;
+  /** Additional websocket connection headers. */
+  MQTTClient_webSocketHeader* websocket_headers;
+  /** Number of additional websocket headers. */
+  int websocket_headers_len;
 } MQTTClient_connectOptions;
 
-#define MQTTClient_connectOptions_initializer { {'M', 'Q', 'T', 'C'}, 6, 60, 1, 1, NULL, NULL, NULL, 30, 0, NULL, 0, NULL, MQTTVERSION_DEFAULT, {NULL, 0, 0}, {0, NULL}, -1, 0}
+#define MQTTClient_connectOptions_initializer { {'M', 'Q', 'T', 'C'}, 7, 60, 1, 1, NULL, NULL, NULL, 30, 0, NULL, 0, NULL, MQTTVERSION_DEFAULT, {NULL, 0, 0}, {0, NULL}, -1, 0, NULL, 0}
 
-#define MQTTClient_connectOptions_initializer5 { {'M', 'Q', 'T', 'C'}, 6, 60, 0, 1, NULL, NULL, NULL, 30, 0, NULL, 0, NULL, MQTTVERSION_5, {NULL, 0, 0}, {0, NULL}, -1, 1}
+#define MQTTClient_connectOptions_initializer5 { {'M', 'Q', 'T', 'C'}, 7, 60, 0, 1, NULL, NULL, NULL, 30, 0, NULL, 0, NULL, MQTTVERSION_5, {NULL, 0, 0}, {0, NULL}, -1, 1, NULL, 0}
 
 /**
   * MQTTClient_libraryInfo is used to store details relating to the currently used

@@ -793,6 +793,17 @@ void MQTTProtocol_freeClient(Clients* client)
                 client->sslopts = NULL;
 	}
 #endif
+	if (client->websocket_headers)
+	{
+		for (int i = 0; i < client->websocket_headers_len; ++i)
+		{
+			free((void *)client->websocket_headers[i].name);
+			free((void *)client->websocket_headers[i].value);
+		}
+		free(client->websocket_headers);
+		client->websocket_headers = NULL;
+		client->websocket_headers_len = 0;
+	}
 	/* don't free the client structure itself... this is done elsewhere */
 	FUNC_EXIT;
 }
