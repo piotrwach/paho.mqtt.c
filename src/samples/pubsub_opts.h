@@ -21,6 +21,11 @@
 #include "MQTTAsync.h"
 #include "MQTTClientPersistence.h"
 
+typedef struct {
+	char *name;
+	char *value;
+} pubsub_opts_websocket_header;
+
 struct pubsub_opts
 {
 	/* debug app options */
@@ -67,6 +72,9 @@ struct pubsub_opts
 		char *name;
 		char *value;
 	} user_property;
+
+	pubsub_opts_websocket_header *websocket_headers;
+	int websocket_headers_len;
 };
 
 typedef struct

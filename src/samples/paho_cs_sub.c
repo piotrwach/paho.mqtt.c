@@ -45,6 +45,7 @@ struct pubsub_opts opts =
 	NULL, NULL, 0, 0, /* will options */
 	0, NULL, NULL, NULL, NULL, NULL, NULL, /* TLS options */
 	0, {NULL, NULL}, /* MQTT V5 options */
+	NULL, 0 /* Additional WebSocket headers */
 };
 
 
@@ -53,6 +54,7 @@ int myconnect(MQTTClient* client)
 	MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
 	MQTTClient_SSLOptions ssl_opts = MQTTClient_SSLOptions_initializer;
 	MQTTClient_willOptions will_opts = MQTTClient_willOptions_initializer;
+	MQTTClient_webSocketHeader* websocket_headers = NULL;
 	int rc = 0;
 
 	if (opts.verbose)
@@ -68,6 +70,18 @@ int myconnect(MQTTClient* client)
 	conn_opts.username = opts.username;
 	conn_opts.password = opts.password;
 	conn_opts.MQTTVersion = opts.MQTTVersion;
+
+	if (opts.websocket_headers)
+	{
+		websocket_headers = malloc(sizeof(MQTTClient_webSocketHeader) * opts.websocket_headers_len);
+		for (int i = 0; i < opts.websocket_headers_len; ++i)
+		{
+			websocket_headers[i].name = opts.websocket_headers[i].name;
+			websocket_headers[i].value = opts.websocket_headers[i].value;
+		}
+		conn_opts.websocket_headers = websocket_headers;
+		conn_opts.websocket_headers_len = opts.websocket_headers_len;
+	}
 
 	if (opts.will_topic) 	/* will options */
 	{
@@ -113,6 +127,8 @@ int myconnect(MQTTClient* client)
 		fprintf(stderr, "Connected\n");
 	else if (rc != MQTTCLIENT_SUCCESS && !opts.quiet)
 		fprintf(stderr, "Connect failed return code: %s\n", MQTTClient_strerror(rc));
+
+	free(websocket_headers);
 
 	return rc;
 }

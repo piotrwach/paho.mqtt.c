@@ -68,6 +68,7 @@ struct pubsub_opts opts =
 	NULL, NULL, 0, 0, /* will options */
 	0, NULL, NULL, NULL, NULL, NULL, NULL, /* TLS options */
 	0, {NULL, NULL}, /* MQTT V5 options */
+	NULL, 0 /* Additional WebSocket headers */
 };
 
 
@@ -204,6 +205,8 @@ int main(int argc, char** argv)
 	MQTTAsync_createOptions create_opts = MQTTAsync_createOptions_initializer;
 	MQTTAsync_willOptions will_opts = MQTTAsync_willOptions_initializer;
 	MQTTAsync_SSLOptions ssl_opts = MQTTAsync_SSLOptions_initializer;
+	MQTTAsync_webSocketHeader* websocket_headers = NULL;
+
 	int rc = 0;
 	char* url = NULL;
 	const char* version = NULL;
@@ -290,6 +293,18 @@ int main(int argc, char** argv)
 	conn_opts.context = client;
 	conn_opts.automaticReconnect = 1;
 
+	if (opts.websocket_headers)
+	{
+		websocket_headers = malloc(sizeof(MQTTAsync_webSocketHeader) * opts.websocket_headers_len);
+		for (int i = 0; i < opts.websocket_headers_len; ++i)
+		{
+			websocket_headers[i].name = opts.websocket_headers[i].name;
+			websocket_headers[i].value = opts.websocket_headers[i].value;
+		}
+		conn_opts.websocket_headers = websocket_headers;
+		conn_opts.websocket_headers_len = opts.websocket_headers_len;
+	}
+
 	if (opts.will_topic) 	/* will options */
 	{
 		will_opts.message = opts.will_payload;
@@ -342,6 +357,8 @@ int main(int argc, char** argv)
 
 exit:
 	MQTTAsync_destroy(&client);
+
+	free(websocket_headers);
 
 	return EXIT_SUCCESS;
 }

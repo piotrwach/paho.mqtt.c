@@ -47,6 +47,7 @@ struct pubsub_opts opts =
 	NULL, NULL, 0, 0, /* will options */
 	0, NULL, NULL, NULL, NULL, NULL, NULL, /* TLS options */
 	0, {NULL, NULL}, /* MQTT V5 options */
+	NULL, 0 /* Additional WebSocket headers */
 };
 
 MQTTAsync_responseOptions pub_opts = MQTTAsync_responseOptions_initializer;
@@ -228,6 +229,7 @@ void myconnect(MQTTAsync client)
 	MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
 	MQTTAsync_SSLOptions ssl_opts = MQTTAsync_SSLOptions_initializer;
 	MQTTAsync_willOptions will_opts = MQTTAsync_willOptions_initializer;
+	MQTTAsync_webSocketHeader* websocket_headers = NULL;
 	int rc = 0;
 
 	if (opts.verbose)
@@ -252,6 +254,18 @@ void myconnect(MQTTAsync client)
 	conn_opts.MQTTVersion = opts.MQTTVersion;
 	conn_opts.context = client;
 	conn_opts.automaticReconnect = 1;
+
+	if (opts.websocket_headers)
+	{
+		websocket_headers = malloc(sizeof(MQTTAsync_webSocketHeader) * opts.websocket_headers_len);
+		for (int i = 0; i < opts.websocket_headers_len; ++i)
+		{
+			websocket_headers[i].name = opts.websocket_headers[i].name;
+			websocket_headers[i].value = opts.websocket_headers[i].value;
+		}
+		conn_opts.websocket_headers = websocket_headers;
+		conn_opts.websocket_headers_len = opts.websocket_headers_len;
+	}
 
 	if (opts.will_topic) 	/* will options */
 	{
@@ -284,6 +298,8 @@ void myconnect(MQTTAsync client)
 		fprintf(stderr, "Failed to start connect, return code %s\n", MQTTAsync_strerror(rc));
 		exit(EXIT_FAILURE);
 	}
+
+	free(websocket_headers);
 }
 
 

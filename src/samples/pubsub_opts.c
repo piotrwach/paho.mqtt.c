@@ -43,7 +43,7 @@ void usage(struct pubsub_opts* opts, pubsub_opts_nameValue* name_values, const c
 	printVersionInfo(name_values);
 
 	printf("Usage: %s [topicname] [-t topic] [-c connection] [-h host] [-p port]\n"
-		   "       [-q qos] [-i clientid] [-u username] [-P password] [-k keepalive_timeout]\n"
+		   "       [-q qos] [-i clientid] [-u username] [-P password] [-k keepalive_timeout] [--ws-header]\n"
 			, program_name);
 	printf("       [-V MQTT-version] [--quiet] [--trace trace-level]\n");
 	if (opts->publisher)
@@ -83,6 +83,7 @@ void usage(struct pubsub_opts* opts, pubsub_opts_nameValue* name_values, const c
 	"  -u (--username)     : MQTT username. No default.\n"
 	"  -P (--password)     : MQTT password. No default.\n"
 	"  -k (--keepalive)    : MQTT keepalive timeout value. Default is %d seconds.\n"
+	"  --ws-header         : additional WebSocket connection header.\n"
 	"  --delimiter         : delimiter string.  Default is \\n.\n",
 	opts->clientid,  opts->keepalive);
 
@@ -196,6 +197,24 @@ int getopts(int argc, char** argv, struct pubsub_opts* opts)
 				opts->password = argv[count];
 			else
 				return 1;
+		}
+		else if (strcmp(argv[count], "--ws-header") == 0)
+		{
+			char *name, *value;
+			if (++count < argc)
+				name = argv[count];
+			else
+				return 1;
+
+			if (++count < argc)
+				value = argv[count];
+			else
+				return 1;
+
+			++opts->websocket_headers_len;
+			opts->websocket_headers = realloc(opts->websocket_headers, sizeof(pubsub_opts_websocket_header) * opts->websocket_headers_len);
+			opts->websocket_headers[opts->websocket_headers_len - 1].name = name;
+			opts->websocket_headers[opts->websocket_headers_len - 1].value = value;
 		}
 		else if (strcmp(argv[count], "--maxdatalen") == 0)
 		{
